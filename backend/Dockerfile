@@ -1,6 +1,10 @@
 # ---- 构建阶段 ----
 FROM golang:1.24-alpine AS builder
 
+# 配置国内 Go 模块代理（解决中国大陆无法访问 proxy.golang.org 的问题）
+ENV GOPROXY=https://goproxy.cn,direct
+ENV GOSUMDB=sum.golang.google.cn
+
 WORKDIR /build
 
 # 先复制依赖文件，利用 Docker 层缓存

@@ -1,0 +1,57 @@
+# =============================================================================
+# Git Ignore - 综合能源云控平台（模块化版本）
+# =============================================================================
+
+# 依赖
+**/node_modules/
+**/vendor/
+
+# 构建产物
+**/dist/
+**/build/
+backend/*.exe
+backend/iot-platform.exe
+backend/server.exe
+backend/server
+*.dll
+*.so
+*.dylib
+
+# 日志
+*.log
+backend/stdout.log
+backend/stderr.log
+**/logs/
+
+# IDE / 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 环境变量 & 密钥
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# 数据库文件
+*.db
+*.sqlite
+*.sql.bak
+
+# Docker 运行时
+docker-data/
+
+# 临时文件
+*.tmp
+*.bak
+*.cache
+
+# 操作系统
+.DS_Store
+Desktop.ini

@@ -1,0 +1,12 @@
+server:
+  port: 8090
+database:
+  host: 127.0.0.1
+  port: 5435
+  user: postgres
+  password: Qsh@2026#PvSecure
+  dbname: iot_platform
+  sslmode: disable
+jwt:
+  secret: iot-platform-jwt-secret-2026
+  expire: 24

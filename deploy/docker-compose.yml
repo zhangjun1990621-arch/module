@@ -1,0 +1,90 @@
+version: "3.8"
+
+# =============================================================================
+# 综合能源云控平台（模块化版本）- Docker Compose 编排
+# 与原项目（zonghe）完全隔离：
+#   - 容器命名：module-*（原 iot-* / pv-*）
+#   - 网络：module_net（独立桥接网络）
+#   - 数据卷：module_pg_data（独立持久化卷）
+#   - 对外端口：仅 8099（原项目 8089）
+#   - 数据库：iot_platform（原 pv_platform）
+#   - PostgreSQL/Backend 仅内部网络访问，不对外暴露
+# =============================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: module-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Qsh@2026#PvSecure
+      POSTGRES_DB: iot_platform
+      TZ: Asia/Shanghai
+    # 仅内部网络访问，不对外暴露端口（与原项目 5432 隔离）
+    expose:
+      - "5432"
+    volumes:
+      - module_pg_data:/var/lib/postgresql/data
+      - ../backend/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - module_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d iot_platform"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: module-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: Qsh@2026#PvSecure
+      DB_NAME: iot_platform
+      JWT_SECRET: iot-platform-jwt-secret-2026
+      JWT_EXPIRE: "24"
+      SERVER_PORT: "8090"
+      TZ: Asia/Shanghai
+    # 仅内部网络访问，不对外暴露端口（与原项目后端隔离）
+    expose:
+      - "8090"
+    networks:
+      - module_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8090/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.frontend
+    container_name: module-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    # 唯一对外暴露端口：8099（原项目使用 8089）
+    ports:
+      - "8099:80"
+    networks:
+      - module_net
+
+networks:
+  module_net:
+    driver: bridge
+    name: module_net
+
+volumes:
+  module_pg_data:
+    name: module_pg_data

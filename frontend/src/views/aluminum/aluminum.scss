@@ -1,0 +1,318 @@
+/* ============================================================
+   铝厂视图样式 · 工业监控风格（参考原铝厂项目深色工业设计）
+   ============================================================ */
+
+/* ---- 工业卡片（参考原 el-card header+body 结构） ---- */
+.al-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+  overflow: hidden;
+
+  .al-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 42px;
+    padding: 0 16px;
+    background: linear-gradient(180deg, #1e2a3e 0%, #1a2436 100%);
+    border-bottom: 1px solid var(--border-default);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+
+    .al-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .al-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+
+  .al-card-body {
+    padding: 14px 16px;
+  }
+}
+
+/* ---- 搜索栏 ---- */
+.al-searchbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: rgba(18, 26, 40, 0.6);
+  border-bottom: 1px solid var(--border-subtle);
+
+  .al-search-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+}
+
+/* ---- 统计卡片行 ---- */
+.al-stat-grid,
+.al-stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 900px) {
+  .al-stat-grid,
+  .al-stat-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.al-stat-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+
+  .al-stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .al-stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .al-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .al-stat-unit {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-left: 3px;
+    font-weight: 400;
+  }
+  .al-stat-sub {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 3px;
+  }
+
+  /* 颜色变体 — 左侧 accent 色条 + icon 背景 */
+  &.blue { border-left: 3px solid #1e9bf3; }
+  &.blue .al-stat-icon { background: rgba(30,155,243,.15); color: #1e9bf3; }
+  &.blue:hover { box-shadow: 0 0 16px rgba(30,155,243,.12); border-color: rgba(30,155,243,.4); }
+
+  &.red { border-left: 3px solid #f6565c; }
+  &.red .al-stat-icon { background: rgba(246,86,92,.15); color: #f6565c; }
+  &.red:hover { box-shadow: 0 0 16px rgba(246,86,92,.12); border-color: rgba(246,86,92,.4); }
+
+  &.orange { border-left: 3px solid #f0a030; }
+  &.orange .al-stat-icon { background: rgba(240,160,48,.15); color: #f0a030; }
+  &.orange:hover { box-shadow: 0 0 16px rgba(240,160,48,.12); border-color: rgba(240,160,48,.4); }
+
+  &.green { border-left: 3px solid #3dd68c; }
+  &.green .al-stat-icon { background: rgba(61,214,140,.15); color: #3dd68c; }
+  &.green:hover { box-shadow: 0 0 16px rgba(61,214,140,.12); border-color: rgba(61,214,140,.4); }
+
+  &.purple { border-left: 3px solid #9d7aff; }
+  &.purple .al-stat-icon { background: rgba(157,122,255,.15); color: #9d7aff; }
+  &.purple:hover { box-shadow: 0 0 16px rgba(157,122,255,.12); border-color: rgba(157,122,255,.4); }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* ---- 状态标签 ---- */
+.al-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+
+  &.blue { background: rgba(30,155,243,.15); color: #1e9bf3; border: 1px solid rgba(30,155,243,.3); }
+  &.green { background: rgba(61,214,140,.15); color: #3dd68c; border: 1px solid rgba(61,214,140,.3); }
+  &.orange { background: rgba(240,160,48,.15); color: #f0a030; border: 1px solid rgba(240,160,48,.3); }
+  &.red { background: rgba(246,86,92,.15); color: #f6565c; border: 1px solid rgba(246,86,92,.3); }
+  &.yellow { background: rgba(255,193,7,.15); color: #ffc107; border: 1px solid rgba(255,193,7,.3); }
+  &.gray { background: rgba(144,157,184,.1); color: #8d9db8; border: 1px solid rgba(144,157,184,.2); }
+}
+
+/* ---- 状态点 ---- */
+.al-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+
+  &.online { background: var(--color-success); box-shadow: 0 0 6px var(--color-success); }
+  &.offline { background: var(--text-tertiary); }
+  &.alarm {
+    background: var(--color-danger);
+    box-shadow: 0 0 6px var(--color-danger);
+    animation: alPulse 1.2s infinite;
+  }
+}
+
+@keyframes alPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ---- 图表容器 ---- */
+.al-chart-box {
+  width: 100%;
+  height: 280px;
+}
+
+.al-chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+/* ---- 页面标题 ---- */
+.al-page-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---- 数字高亮 ---- */
+.al-num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- 两列布局 ---- */
+.al-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+/* ---- 面板（独立卡片块，用于概览/历史等） ---- */
+.al-panel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+
+  .al-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 42px;
+    padding: 0 16px;
+    background: linear-gradient(180deg, #1e2a3e 0%, #1a2436 100%);
+    border-bottom: 1px solid var(--border-default);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .al-panel-body {
+    padding: 14px 16px;
+  }
+}
+
+/* ---- 筛选栏（独立使用，不在 al-card 内） ---- */
+.al-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: rgba(18, 26, 40, 0.6);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+}
+
+/* ---- 状态分布行 ---- */
+.al-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  .al-status-label {
+    width: 70px;
+    flex-shrink: 0;
+    text-align: right;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  :deep(.el-progress) {
+    flex: 1;
+  }
+  .al-status-count {
+    width: 60px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+/* ---- 详情弹窗深色风格 ---- */
+.al-detail-dialog {
+  :deep(.el-dialog__body) {
+    background: var(--bg-elevated);
+    padding: 0;
+  }
+  :deep(.el-tabs--border-card) {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+  }
+  :deep(.el-tabs__content) {
+    padding: 16px;
+  }
+  :deep(.el-table) {
+    background: transparent;
+  }
+}
+
+/* ---- Element Plus 表格工业风覆盖 ---- */
+.al-card-body :deep(.el-table),
+.al-card .al-card-body :deep(.el-table) {
+  background: transparent;
+}
+
+/* ---- 响应式 ---- */
+@media (max-width: 1200px) {
+  .al-chart-row,
+  .al-row2 {
+    grid-template-columns: 1fr;
+  }
+}

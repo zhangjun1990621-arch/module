@@ -1,0 +1,335 @@
+/* ============================================================
+   全局样式 · 深色科技风设计系统
+   ============================================================
+   背景 #0d1117 · 卡片 #161b22 · 主色 #4B3FE3
+   ============================================================ */
+
+/* ---- 设计令牌（CSS 变量） ---- */
+:root {
+  /* 背景层次 */
+  --bg-base: #0d1117;
+  --bg-elevated: #161b22;
+  --bg-glass: rgba(22, 27, 34, 0.6);
+  --bg-glass-strong: rgba(22, 27, 34, 0.92);
+
+  /* 边框 */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: #30363d;
+  --border-glow: rgba(75, 63, 227, 0.25);
+
+  /* 文字 */
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-tertiary: #6e7681;
+
+  /* 主色调 */
+  --color-primary: #4b3fe3;
+  --color-primary-light: #7c6ff5;
+  --color-primary-dark: #3a32b8;
+
+  /* 状态色 */
+  --color-success: #3fb950;
+  --color-danger: #f85149;
+  --color-warning: #d29922;
+  --color-info: #58a6ff;
+  --color-purple: #a371f7;
+
+  /* 渐变 */
+  --grad-primary: linear-gradient(135deg, #4b3fe3, #7c6ff5);
+  --grad-success: linear-gradient(135deg, #3fb950, #2ea043);
+  --grad-danger: linear-gradient(135deg, #f85149, #da3633);
+
+  /* 阴影 */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 20px rgba(75, 63, 227, 0.15);
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* 模糊 */
+  --blur-glass: blur(12px);
+}
+
+/* ---- 重置样式 ---- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(75, 63, 227, 0.06), transparent),
+    #0d1117;
+  background-attachment: fixed;
+  color: var(--text-primary);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* ---- 滚动条美化 ---- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(13, 17, 23, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(75, 63, 227, 0.3), rgba(75, 63, 227, 0.15));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(75, 63, 227, 0.5), rgba(75, 63, 227, 0.25));
+}
+
+a {
+  color: var(--color-primary-light);
+  text-decoration: none;
+}
+
+/* ============================================================
+   通用工具类
+   ============================================================ */
+
+/* 卡片 */
+.al-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  transition: all 0.25s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+
+/* 标签 */
+.al-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid transparent;
+
+  &.al-tag-success {
+    background: rgba(63, 185, 80, 0.12);
+    color: var(--color-success);
+    border-color: rgba(63, 185, 80, 0.3);
+  }
+
+  &.al-tag-danger {
+    background: rgba(248, 81, 73, 0.12);
+    color: var(--color-danger);
+    border-color: rgba(248, 81, 73, 0.3);
+  }
+
+  &.al-tag-warning {
+    background: rgba(210, 153, 34, 0.12);
+    color: var(--color-warning);
+    border-color: rgba(210, 153, 34, 0.3);
+  }
+
+  &.al-tag-info {
+    background: rgba(88, 166, 255, 0.12);
+    color: var(--color-info);
+    border-color: rgba(88, 166, 255, 0.3);
+  }
+}
+
+/* ============================================================
+   Element Plus 暗色主题增强
+   ============================================================ */
+
+/* ---- el-table ---- */
+.el-table {
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  --el-table-header-bg-color: rgba(22, 27, 34, 0.8);
+  --el-table-row-hover-bg-color: rgba(75, 63, 227, 0.06);
+  --el-table-border-color: rgba(48, 54, 61, 0.6);
+  --el-table-text-color: var(--text-primary);
+  --el-table-header-text-color: var(--text-secondary);
+  --el-fill-color-lighter: rgba(22, 27, 34, 0.4);
+  --el-fill-color-light: rgba(22, 27, 34, 0.4);
+  --el-fill-color-blank: transparent;
+}
+
+.el-table th.el-table__cell {
+  background: rgba(22, 27, 34, 0.8) !important;
+  border-bottom: 1px solid rgba(75, 63, 227, 0.15) !important;
+  font-weight: 600;
+}
+
+.el-table__body tr.hover-row > td {
+  background-color: rgba(75, 63, 227, 0.04) !important;
+}
+
+.el-table__body tr.hover-row > td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+/* ---- el-dialog ---- */
+.el-dialog {
+  background: var(--bg-glass-strong);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.el-dialog__header {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.el-dialog__title {
+  color: var(--text-primary);
+}
+
+/* ---- el-card ---- */
+.el-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+}
+
+/* ---- el-button primary 渐变 ---- */
+.el-button--primary:not(.is-plain):not(.is-text):not(.is-link) {
+  background: var(--grad-primary);
+  border: none;
+}
+
+.el-button--primary:not(.is-plain):not(.is-text):not(.is-link):hover {
+  background: linear-gradient(135deg, #5d50f0, #8c7fff);
+  box-shadow: 0 4px 12px rgba(75, 63, 227, 0.3);
+}
+
+/* ---- el-input / el-select 暗色适配 ---- */
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select__wrapper {
+  background: var(--bg-base) !important;
+  box-shadow: 0 0 0 1px var(--border-default) inset !important;
+}
+
+.el-input__wrapper:hover,
+.el-select__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--color-primary) inset !important;
+}
+
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 1px var(--color-primary) inset, 0 0 0 3px rgba(75, 63, 227, 0.1) !important;
+}
+
+.el-input__inner,
+.el-textarea__inner {
+  color: var(--text-primary);
+}
+
+.el-input__prefix .el-icon {
+  color: var(--text-tertiary);
+}
+
+/* ---- el-menu 暗色适配 ---- */
+.el-menu {
+  background: transparent;
+}
+
+/* ---- el-select 下拉框 ---- */
+.el-select-dropdown {
+  background: var(--bg-elevated);
+  border-color: var(--border-default);
+}
+
+.el-select-dropdown__item {
+  color: var(--text-secondary);
+
+  &.hover,
+  &:hover {
+    background: rgba(75, 63, 227, 0.08);
+  }
+
+  &.selected {
+    color: var(--color-primary-light);
+  }
+}
+
+/* ---- el-pagination ---- */
+.el-pagination {
+  --el-pagination-bg-color: transparent;
+  --el-pagination-text-color: var(--text-secondary);
+  --el-pagination-button-bg-color: var(--bg-elevated);
+  --el-pagination-hover-color: var(--color-primary-light);
+}
+
+/* ---- el-tag ---- */
+.el-tag {
+  border-radius: var(--radius-sm);
+}
+
+/* ---- el-empty ---- */
+.el-empty__description p {
+  color: var(--text-tertiary);
+}
+
+/* ---- el-form ---- */
+.el-form-item__label {
+  color: var(--text-secondary);
+}
+
+/* ---- el-dropdown-menu ---- */
+.el-dropdown-menu {
+  background: var(--bg-elevated);
+  border-color: var(--border-default);
+}
+
+.el-dropdown-menu__item {
+  color: var(--text-secondary);
+
+  &:hover {
+    background: rgba(75, 63, 227, 0.08);
+    color: var(--text-primary);
+  }
+}
+
+/* ---- el-message-box ---- */
+.el-message-box {
+  background: var(--bg-elevated);
+  border-color: var(--border-default);
+}
+
+.el-message-box__title,
+.el-message-box__content {
+  color: var(--text-primary);
+}
+
+/* ---- 去掉 focus outline ---- */
+.el-button:focus,
+.el-button:active,
+.el-link:focus,
+.el-link:active {
+  outline: none !important;
+}

@@ -246,11 +246,11 @@ export function matchPvMock(method: string, url: string, params?: any): any {
 
     // /devices/:id （放最后，避免吃掉 /devices/tree 等）
     mt = u.match(/^\/devices\/([^/]+)$/)
-    if (mt) return DEVICES.find((d) => d.id === mt[1]) || DEVICES[0]
+    if (mt) return DEVICES.find((d) => d.id === mt![1]) || DEVICES[0]
 
     // /ota/tasks/:id
     mt = u.match(/^\/ota\/tasks\/([^/]+)$/)
-    if (mt) return OTA_TASKS.find((t) => String(t.id) === mt[1]) || OTA_TASKS[0]
+    if (mt) return OTA_TASKS.find((t) => String(t.id) === mt![1]) || OTA_TASKS[0]
   }
 
   if (m === 'post') {

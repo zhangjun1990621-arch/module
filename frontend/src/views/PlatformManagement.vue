@@ -260,11 +260,12 @@ interface EditableColumn extends ColumnDef {
 }
 
 interface EditableNavItem extends NavItem {
+  icon: string         // 覆盖父类型，使 icon 必填（用于 v-model）
   _pageKey?: string   // 页面标识，自动从菜单名生成
   _pageType?: string  // 页面类型
   _columns?: EditableColumn[]
   _component?: string
-  _children?: EditableNavItem[]
+  children?: EditableNavItem[]  // 覆盖父类型，保持子菜单也是 EditableNavItem
 }
 
 // ===== 菜单数据 =====
@@ -376,7 +377,6 @@ function addNavItem() {
 
 function addNavChild(parent: EditableNavItem) {
   if (!parent.children) parent.children = []
-  if (!parent._children) parent._children = []
   const usedKeys = collectUsedKeys()
   const key = generatePageKey('子菜单', usedKeys)
   const child: EditableNavItem = {
@@ -386,8 +386,7 @@ function addNavChild(parent: EditableNavItem) {
     _pageKey: key,
     _pageType: 'table',
   }
-  parent.children.push(child as NavItem)
-  parent._children.push(child)
+  parent.children.push(child)
 }
 
 function removeNavItem(idx: number) {
@@ -396,7 +395,6 @@ function removeNavItem(idx: number) {
 
 function removeNavChild(parent: EditableNavItem, idx: number) {
   parent.children?.splice(idx, 1)
-  parent._children?.splice(idx, 1)
   if (parent.children && parent.children.length === 0) {
     delete parent.children
   }
@@ -547,10 +545,9 @@ function openEdit(row: Platform) {
       const editable: EditableNavItem = {
         label: nav.label,
         path: nav.path,
-        icon: nav.icon,
+        icon: nav.icon || '',
         _pageKey: nav.path ? nav.path.split('/').pop() || '' : '',
         _pageType: 'dashboard',
-        _children: [],
       }
 
       // 从 pages 中找到对应的页面配置
@@ -573,7 +570,7 @@ function openEdit(row: Platform) {
           const childEditable: EditableNavItem = {
             label: child.label,
             path: child.path,
-            icon: child.icon,
+            icon: child.icon || '',
             _pageKey: child.path ? child.path.split('/').pop() || '' : '',
             _pageType: 'dashboard',
           }
@@ -588,8 +585,7 @@ function openEdit(row: Platform) {
             }
             if (page.component) childEditable._component = page.component
           }
-          editable.children!.push(childEditable as NavItem)
-          editable._children!.push(childEditable)
+          editable.children!.push(childEditable)
         }
       }
       navItems.push(editable)

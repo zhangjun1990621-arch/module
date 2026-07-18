@@ -45,11 +45,12 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: Qsh@2026#PvSecure
-      DB_NAME: iot_platform
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "5432"
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: Qsh@2026#PvSecure
+      DATABASE_DBNAME: iot_platform
+      DATABASE_SSLMODE: disable
       JWT_SECRET: iot-platform-jwt-secret-2026
       JWT_EXPIRE: "24"
       SERVER_PORT: "8090"

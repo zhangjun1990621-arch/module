@@ -86,6 +86,52 @@ CREATE SCHEMA IF NOT EXISTS schema_pv;
 CREATE TABLE IF NOT EXISTS schema_pv.devices (LIKE devices INCLUDING ALL);
 CREATE TABLE IF NOT EXISTS schema_pv.alarms  (LIKE alarms  INCLUDING ALL);
 
+-- 光伏平台 OTA 升级相关表
+CREATE TABLE IF NOT EXISTS schema_pv.firmwares (
+    id           SERIAL PRIMARY KEY,
+    name         VARCHAR(255) NOT NULL,
+    version      VARCHAR(64),
+    file_path    VARCHAR(512),
+    file_size    BIGINT DEFAULT 0,
+    md5          VARCHAR(64),
+    device_type  VARCHAR(64),
+    upload_time  TIMESTAMPTZ DEFAULT NOW(),
+    created_at   TIMESTAMPTZ DEFAULT NOW(),
+    updated_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS schema_pv.ota_tasks (
+    id             SERIAL PRIMARY KEY,
+    firmware_id    INT REFERENCES schema_pv.firmwares(id),
+    status         VARCHAR(16) DEFAULT 'pending',
+    total_devices  INT DEFAULT 0,
+    success_count  INT DEFAULT 0,
+    fail_count     INT DEFAULT 0,
+    progress       INT DEFAULT 0,
+    created_by     VARCHAR(64),
+    created_at     TIMESTAMPTZ DEFAULT NOW(),
+    completed_at   TIMESTAMPTZ,
+    end_reason     VARCHAR(32),
+    failed_devices JSONB
+);
+
+CREATE TABLE IF NOT EXISTS schema_pv.ota_task_devices (
+    id          SERIAL PRIMARY KEY,
+    task_id     INT REFERENCES schema_pv.ota_tasks(id) ON DELETE CASCADE,
+    device_id   VARCHAR(64) NOT NULL,
+    status      VARCHAR(16) DEFAULT 'pending',
+    error_msg   TEXT,
+    updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_ota_task_devices_task_id ON schema_pv.ota_task_devices(task_id);
+
+-- 插入示例固件数据
+INSERT INTO schema_pv.firmwares (name, version, file_size, upload_time) VALUES
+('SG110CX_V3.2.1.bin', '3.2.1', 1048576, NOW() - INTERVAL '3 days'),
+('SG50CX_V3.1.0.bin', '3.1.0', 851968, NOW() - INTERVAL '10 days'),
+('SG30CX_V3.0.5.bin', '3.0.5', 712704, NOW() - INTERVAL '21 days')
+ON CONFLICT DO NOTHING;
+
 -- ============ 平台专属 schema：电厂 ============
 CREATE SCHEMA IF NOT EXISTS schema_power;
 

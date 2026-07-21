@@ -20,6 +20,11 @@
           <el-table-column prop="uploadTime" label="上传时间" width="165">
             <template #default="{ row }">{{ formatDT(row.uploadTime) }}</template>
           </el-table-column>
+          <el-table-column label="操作" align="center" width="80">
+            <template #default="{ row }">
+              <el-button link type="danger" size="small" @click="handleDeleteFirmware(row.id)">删除</el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>
@@ -29,28 +34,51 @@
       <div class="section-body">
         <el-button type="primary" size="small" @click="openCreateTask">创建升级任务</el-button>
         <el-table :data="tasks" size="small" stripe table-layout="auto" style="margin-top: 12px">
-          <el-table-column prop="id" label="ID" />
+          <el-table-column prop="id" label="ID" width="60" />
           <el-table-column label="固件">
             <template #default="{ row }">{{ row.firmware?.name || '-' }}</template>
           </el-table-column>
-          <el-table-column prop="status" label="状态">
+          <el-table-column prop="status" label="状态" width="90">
             <template #default="{ row }">
               <el-tag :type="getStatusType(row.status)" size="small">{{ UPGRADE_STATUS_LABELS[row.status] || row.status }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="进度">
+          <el-table-column label="进度" min-width="180">
             <template #default="{ row }">
-              <el-progress :percentage="Math.round(row.progress)" :stroke-width="14" />
+              <el-progress
+                :percentage="Math.round(row.progress)"
+                :stroke-width="14"
+                :status="getProgressStatus(row)"
+              />
+              <div class="progress-detail">{{ row.successCount }}成功 / {{ row.failCount }}失败 / 共{{ row.totalDevices }}台</div>
             </template>
           </el-table-column>
-          <el-table-column label="成功/失败" align="center">
-            <template #default="{ row }">{{ row.successCount }}/{{ row.failCount }}</template>
-          </el-table-column>
-          <el-table-column label="操作" align="center">
+          <el-table-column label="结果" width="100" v-if="hasEndedTask">
             <template #default="{ row }">
-              <el-button v-if="row.status === 'pending' || row.status === 'paused'" link type="primary" size="small" @click="pauseTask(row.id)">暂停</el-button>
-              <el-button v-if="row.status === 'running'" link type="primary" size="small" @click="resumeTask(row.id)">继续</el-button>
-              <el-button v-if="row.status !== 'cancelled'" link type="danger" size="small" @click="cancelTask(row.id)">取消</el-button>
+              <span v-if="row.endReason" class="end-reason" :class="row.endReason">
+                {{ UPGRADE_END_REASON_LABELS[row.endReason] || row.endReason }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="创建时间" width="155">
+            <template #default="{ row }">{{ formatDT(row.createdAt) }}</template>
+          </el-table-column>
+          <el-table-column label="操作" align="center" width="200">
+            <template #default="{ row }">
+              <!-- 运行中：显示暂停 -->
+              <el-button v-if="row.status === 'running'" link type="warning" size="small" @click="pauseTask(row.id)">暂停</el-button>
+              <!-- 已暂停：显示继续 -->
+              <el-button v-if="row.status === 'paused'" link type="primary" size="small" @click="resumeTask(row.id)">继续</el-button>
+              <!-- 待执行：显示开始 -->
+              <el-button v-if="row.status === 'pending'" link type="primary" size="small" @click="resumeTask(row.id)">开始</el-button>
+              <!-- 运行中/已暂停：显示完成（手动结束） -->
+              <el-button v-if="row.status === 'running' || row.status === 'paused'" link type="success" size="small" @click="completeTask(row.id)">完成</el-button>
+              <!-- 非 cancelled 且非 completed：显示取消 -->
+              <el-button v-if="row.status !== 'cancelled' && row.status !== 'completed'" link type="danger" size="small" @click="cancelTask(row.id)">取消</el-button>
+              <!-- 已完成且有失败设备：显示重试 -->
+              <el-button v-if="row.status === 'completed' && row.failCount > 0" link type="warning" size="small" @click="retryTask(row.id)">重试</el-button>
+              <!-- 非运行中/非暂停：显示删除 -->
+              <el-button v-if="row.status !== 'running' && row.status !== 'paused'" link type="danger" size="small" @click="handleDeleteTask(row.id)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -77,7 +105,7 @@
               <span class="selected-count">已选 {{ taskForm.deviceIds.length }} 台</span>
             </div>
             <el-checkbox-group v-model="taskForm.deviceIds" class="device-checkboxes">
-              <el-checkbox v-for="dev in devices" :key="dev.id" :label="dev.id" :value="dev.id">
+              <el-checkbox v-for="dev in devices" :key="dev.id" :value="dev.id">
                 {{ dev.id }} <span class="device-status-tag" :class="dev.status">{{ dev.status === 'online' ? '在线' : '离线' }}</span>
               </el-checkbox>
             </el-checkbox-group>
@@ -93,11 +121,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { getFirmwares, uploadFirmware, getOTATasks, createOTATask, pauseOTATask, resumeOTATask, cancelOTATask } from '@/api/ota'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  getFirmwares, uploadFirmware, deleteFirmware,
+  getOTATasks, createOTATask, deleteOTATask,
+  pauseOTATask, resumeOTATask, cancelOTATask,
+  completeOTATask, retryFailedDevices
+} from '@/api/ota'
 import { getDevices } from '@/api/device'
-import { UPGRADE_STATUS_LABELS } from '@/utils/constants'
+import { UPGRADE_STATUS_LABELS, UPGRADE_END_REASON_LABELS } from '@/utils/constants'
 
 const firmwares = ref<any[]>([])
 const tasks = ref<any[]>([])
@@ -108,6 +141,10 @@ const taskForm = ref<{ firmwareId: number | null; deviceIds: string[] }>({
   firmwareId: null,
   deviceIds: []
 })
+
+const hasEndedTask = computed(() =>
+  tasks.value.some(t => t.endReason)
+)
 
 function formatDT(dt: string) {
   if (!dt) return '-'
@@ -132,6 +169,17 @@ function getStatusType(status: string) {
   return map[status] || 'info'
 }
 
+/** 进度条状态：控制颜色 */
+function getProgressStatus(row: any) {
+  if (row.status === 'running' || row.status === 'pending') return undefined // 蓝色（默认）
+  if (row.status === 'paused') return 'warning'  // 橙色
+  if (row.status === 'cancelled') return 'exception'  // 红色
+  // completed 状态
+  if (row.progress >= 100 && row.failCount === 0) return 'success'  // 绿色（全部成功）
+  if (row.failCount > 0) return 'warning'  // 橙色（部分失败）
+  return 'success'
+}
+
 function selectAllDevices() {
   taskForm.value.deviceIds = devices.value.map(d => d.id)
 }
@@ -146,6 +194,19 @@ async function handleFileChange(file: any) {
     loadFirmwares()
   } catch (e) {
     ElMessage.error('上传失败')
+  }
+}
+
+async function handleDeleteFirmware(id: number) {
+  try {
+    await ElMessageBox.confirm('确定删除该固件吗？', '提示', { type: 'warning' })
+    await deleteFirmware(id)
+    ElMessage.success('固件已删除')
+    loadFirmwares()
+  } catch (e: any) {
+    if (e !== 'cancel' && e?.message !== 'cancel') {
+      ElMessage.error(e?.message || '删除失败')
+    }
   }
 }
 
@@ -178,7 +239,7 @@ async function handleCreateTask() {
     ElMessage.success('任务创建成功')
     showCreateTask.value = false
     await loadTasks()
-    startPolling()  // 立即启动快速轮询跟踪进度
+    startPolling()
   } catch (e: any) {
     ElMessage.error(e?.message || '创建失败')
   } finally {
@@ -187,31 +248,95 @@ async function handleCreateTask() {
 }
 
 async function pauseTask(id: number) {
-  await pauseOTATask(id)
-  ElMessage.success('已暂停')
-  loadTasks()
+  try {
+    await pauseOTATask(id)
+    ElMessage.success('已暂停')
+    loadTasks()
+  } catch (e: any) {
+    ElMessage.error(e?.message || '操作失败')
+  }
 }
 
 async function resumeTask(id: number) {
-  await resumeOTATask(id)
-  ElMessage.success('已继续')
-  loadTasks()
+  try {
+    await resumeOTATask(id)
+    ElMessage.success('已继续')
+    loadTasks()
+    startPolling()
+  } catch (e: any) {
+    ElMessage.error(e?.message || '操作失败')
+  }
 }
 
 async function cancelTask(id: number) {
-  await cancelOTATask(id)
-  ElMessage.success('已取消')
-  loadTasks()
+  try {
+    await ElMessageBox.confirm('确定取消该升级任务吗？', '提示', { type: 'warning' })
+    await cancelOTATask(id)
+    ElMessage.success('已取消')
+    loadTasks()
+  } catch (e: any) {
+    if (e !== 'cancel' && e?.message !== 'cancel') {
+      ElMessage.error(e?.message || '操作失败')
+    }
+  }
+}
+
+async function completeTask(id: number) {
+  try {
+    await ElMessageBox.confirm('手动结束任务将停止剩余设备的升级，进度停在当前位置。确定吗？', '手动结束', { type: 'warning' })
+    await completeOTATask(id)
+    ElMessage.success('任务已结束')
+    loadTasks()
+  } catch (e: any) {
+    if (e !== 'cancel' && e?.message !== 'cancel') {
+      ElMessage.error(e?.message || '操作失败')
+    }
+  }
+}
+
+async function retryTask(id: number) {
+  try {
+    await ElMessageBox.confirm('将重新升级所有失败的设备，确定吗？', '重试失败设备', { type: 'warning' })
+    await retryFailedDevices(id)
+    ElMessage.success('重试已启动')
+    loadTasks()
+    startPolling()
+  } catch (e: any) {
+    if (e !== 'cancel' && e?.message !== 'cancel') {
+      ElMessage.error(e?.message || '操作失败')
+    }
+  }
+}
+
+async function handleDeleteTask(id: number) {
+  try {
+    await ElMessageBox.confirm('确定删除该升级任务记录吗？删除后不可恢复。', '删除任务', { type: 'warning' })
+    await deleteOTATask(id)
+    ElMessage.success('任务已删除')
+    loadTasks()
+  } catch (e: any) {
+    if (e !== 'cancel' && e?.message !== 'cancel') {
+      ElMessage.error(e?.message || '删除失败')
+    }
+  }
 }
 
 async function loadFirmwares() {
-  const res: any = await getFirmwares()
-  firmwares.value = res.data || []
+  try {
+    const res: any = await getFirmwares()
+    firmwares.value = res.data || []
+  } catch (e) {
+    firmwares.value = []
+  }
 }
 
 async function loadTasks() {
-  const res: any = await getOTATasks()
-  tasks.value = res.data || []
+  try {
+    const res: any = await getOTATasks()
+    tasks.value = res.data || []
+  } catch (e) {
+    tasks.value = []
+  }
 }
 
 // 任务轮询:有运行中任务时每1.5s刷新,否则每5s
@@ -224,7 +349,6 @@ function startPolling() {
   const interval = hasRunningTask() ? 1500 : 5000
   pollTimer = setInterval(async () => {
     await loadTasks()
-    // 状态变化后调整轮询频率
     if (!hasRunningTask() && pollTimer) {
       stopPolling()
       startPolling()
@@ -268,6 +392,23 @@ onUnmounted(stopPolling)
   .section-body {
     padding: 16px 18px;
   }
+}
+
+.progress-detail {
+  font-size: 11px;
+  color: #566880;
+  margin-top: 2px;
+}
+
+.end-reason {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  &.all_success { background: rgba(29,201,129,0.15); color: #1dc981; }
+  &.partial_fail { background: rgba(239,170,23,0.15); color: #efaa17; }
+  &.all_failed { background: rgba(246,86,92,0.15); color: #f6565c; }
+  &.manual_stop { background: rgba(77,163,255,0.15); color: #4da3ff; }
+  &.cancelled { background: rgba(246,86,92,0.15); color: #f6565c; }
 }
 
 .device-select-area {

@@ -45,6 +45,7 @@ func main() {
 	alarmHandler := handler.NewAlarmHandler()
 	dashboardHandler := handler.NewDashboardHandler()
 	userHandler := handler.NewUserHandler(database.DB)
+	otaHandler := handler.NewOTAHandler()
 
 	// 5. 注册路由
 	gin.SetMode(gin.ReleaseMode)
@@ -103,6 +104,26 @@ func main() {
 
 		// 仪表盘
 		platformAPI.GET("/dashboard", dashboardHandler.Get)
+
+		// OTA 升级管理
+		otaAPI := platformAPI.Group("/ota")
+		{
+			// 固件管理
+			otaAPI.GET("/firmwares", otaHandler.ListFirmwares)
+			otaAPI.POST("/firmwares", otaHandler.UploadFirmware)
+			otaAPI.DELETE("/firmwares/:id", otaHandler.DeleteFirmware)
+
+			// 升级任务
+			otaAPI.GET("/tasks", otaHandler.ListTasks)
+			otaAPI.GET("/tasks/:id", otaHandler.GetTask)
+			otaAPI.POST("/tasks", otaHandler.CreateTask)
+			otaAPI.DELETE("/tasks/:id", otaHandler.DeleteTask)
+			otaAPI.POST("/tasks/:id/pause", otaHandler.PauseTask)
+			otaAPI.POST("/tasks/:id/resume", otaHandler.ResumeTask)
+			otaAPI.POST("/tasks/:id/cancel", otaHandler.CancelTask)
+			otaAPI.POST("/tasks/:id/complete", otaHandler.CompleteTask)
+			otaAPI.POST("/tasks/:id/retry", otaHandler.RetryFailedDevices)
+		}
 	}
 
 	// 6. 启动 HTTP 服务

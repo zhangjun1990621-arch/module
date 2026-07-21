@@ -48,3 +48,11 @@ export const UPGRADE_STATUS_LABELS: Record<string, string> = {
   completed: '已完成',
   cancelled: '已取消'
 }
+
+export const UPGRADE_END_REASON_LABELS: Record<string, string> = {
+  all_success: '全部成功',
+  partial_fail: '部分失败',
+  all_failed: '全部失败',
+  manual_stop: '手动结束',
+  cancelled: '已取消'
+}

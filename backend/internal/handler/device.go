@@ -86,6 +86,77 @@ func (h *DeviceHandler) List(c *gin.Context) {
 	pagedSuccess(c, devices, total, page, pageSize)
 }
 
+// GetTree 设备树（按 stationId 分组）
+func (h *DeviceHandler) GetTree(c *gin.Context) {
+	pdb, ok := getPlatformTx(c)
+	if !ok {
+		return
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			pdb.Rollback()
+		}
+	}()
+
+	var devices []model.Device
+	if err := pdb.Order("station_id, created_at").Find(&devices).Error; err != nil {
+		fail(c, http.StatusInternalServerError, "查询设备列表失败: "+err.Error())
+		return
+	}
+	if devices == nil {
+		devices = make([]model.Device, 0)
+	}
+
+	// 按 stationId 分组构建树
+	type StationGroup struct {
+		ID         int            `json:"id"`
+		Name       string         `json:"name"`
+		Code       string         `json:"code"`
+		DeviceCount int           `json:"deviceCount"`
+		Devices    []model.Device `json:"devices"`
+	}
+
+	stationMap := make(map[string]*StationGroup)
+	var tree []StationGroup
+
+	for i, d := range devices {
+		stationKey := d.StationID
+		if stationKey == "" {
+			stationKey = "default"
+		}
+
+		group, exists := stationMap[stationKey]
+		if !exists {
+			group = &StationGroup{
+				ID:         len(tree) + 1,
+				Name:       stationKey,
+				Code:       stationKey,
+				DeviceCount: 0,
+				Devices:    []model.Device{},
+			}
+			stationMap[stationKey] = group
+			tree = append(tree, *group)
+			group = stationMap[stationKey]
+		}
+		group.Devices = append(group.Devices, devices[i])
+		group.DeviceCount++
+		tree[len(tree)-1] = *group
+		stationMap[stationKey] = group
+	}
+
+	if tree == nil {
+		tree = make([]StationGroup, 0)
+	}
+
+	if err := pdb.Commit().Error; err != nil {
+		fail(c, http.StatusInternalServerError, "提交事务失败")
+		return
+	}
+	committed = true
+	success(c, tree)
+}
+
 // Get 设备详情
 func (h *DeviceHandler) Get(c *gin.Context) {
 	pdb, ok := getPlatformTx(c)

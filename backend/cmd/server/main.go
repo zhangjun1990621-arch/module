@@ -94,6 +94,7 @@ func main() {
 	{
 		// 设备 CRUD
 		platformAPI.GET("/devices", deviceHandler.List)
+		platformAPI.GET("/devices/tree", deviceHandler.GetTree)
 		platformAPI.GET("/devices/:id", deviceHandler.Get)
 		platformAPI.POST("/devices", deviceHandler.Create)
 		platformAPI.PUT("/devices/:id", deviceHandler.Update)

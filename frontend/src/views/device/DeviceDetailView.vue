@@ -179,17 +179,19 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDeviceStore } from '@/stores/device'
+import { usePlatformStore } from '@/stores/platform'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { getHistoryData } from '@/api/data'
 import { getOperationLogs, getMQTTLogs } from '@/api/log'
-import request from '@/api/pvRequest'
+import request from '@/api/request'
 import { useCurveChart } from '@/composables/useCurveChart'
 import { useWebSocket } from '@/composables/useWebSocket'
 
 const route = useRoute()
 const router = useRouter()
 const deviceStore = useDeviceStore()
+const platformStore = usePlatformStore()
 
 const searchKeyword = ref('')
 const filterStation = ref<number | null>(null)
@@ -325,9 +327,10 @@ async function handlePoll() {
   if (!deviceStore.selectedDeviceId) return
   pollingLoading.value = true
   try {
-    await request.post(`/devices/${deviceStore.selectedDeviceId}/polling`, { items: ['ac', 'dc', 'sw', 'hw'] })
-    ElMessage.success('召测指令已下发')
-    setTimeout(refreshDevice, 2000)
+    const pid = platformStore.currentPlatform?.id || 'pv'
+    await request.post(`/${pid}/devices/${deviceStore.selectedDeviceId}/polling`, { items: ['ac', 'dc', 'sw', 'hw'] })
+    ElMessage.success('召测成功，设备数据已刷新')
+    setTimeout(refreshDevice, 1000)
   } catch (e: any) {
     ElMessage.error(e?.message || '召测失败')
   } finally {
@@ -340,7 +343,8 @@ async function handleReboot() {
   await ElMessageBox.confirm('确认重启设备？', '提示', { type: 'warning' })
   rebootLoading.value = true
   try {
-    await request.post(`/devices/${deviceStore.selectedDeviceId}/reboot`)
+    const pid = platformStore.currentPlatform?.id || 'pv'
+    await request.post(`/${pid}/devices/${deviceStore.selectedDeviceId}/reboot`)
     ElMessage.success('重启指令已下发')
   } catch (e: any) {
     ElMessage.error(e?.message || '重启失败')
@@ -354,7 +358,8 @@ async function handleFactory() {
   await ElMessageBox.confirm('确认恢复出厂设置？此操作不可恢复！', '警告', { type: 'error' })
   factoryLoading.value = true
   try {
-    await request.post(`/devices/${deviceStore.selectedDeviceId}/factory`)
+    const pid = platformStore.currentPlatform?.id || 'pv'
+    await request.post(`/${pid}/devices/${deviceStore.selectedDeviceId}/factory`)
     ElMessage.success('恢复出厂指令已下发')
   } catch (e: any) {
     ElMessage.error(e?.message || '恢复出厂失败')
@@ -372,10 +377,11 @@ async function handleReportAck() {
   )
   ackLoading.value = true
   try {
-    await request.post(`/devices/${deviceStore.selectedDeviceId}/report-ack`)
+    const pid = platformStore.currentPlatform?.id || 'pv'
+    await request.post(`/${pid}/devices/${deviceStore.selectedDeviceId}/report-ack`)
     ElMessage.success('OTA准备指令已下发，即将跳转升级页面')
     setTimeout(() => {
-      router.push('/ota')
+      router.push('/pv/ota')
     }, 1000)
   } catch (e: any) {
     ElMessage.error(e?.message || '下发失败')
@@ -387,7 +393,8 @@ async function handleReportAck() {
 async function handleSet() {
   if (!deviceStore.selectedDeviceId) return
   try {
-    await request.post(`/devices/${deviceStore.selectedDeviceId}/set`, {
+    const pid = platformStore.currentPlatform?.id || 'pv'
+    await request.post(`/${pid}/devices/${deviceStore.selectedDeviceId}/set`, {
       eov: settingForm.value.overVoltage,
       euv: settingForm.value.underVoltage,
       ap: settingForm.value.activePower

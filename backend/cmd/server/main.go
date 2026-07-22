@@ -42,6 +42,7 @@ func main() {
 	authHandler := handler.NewAuthHandler(database.DB, cfg.JWT.Secret, cfg.JWT.Expire)
 	platformHandler := handler.NewPlatformHandler(platformSvc)
 	deviceHandler := handler.NewDeviceHandler()
+	deviceCmdHandler := handler.NewDeviceCommandHandler()
 	alarmHandler := handler.NewAlarmHandler()
 	dashboardHandler := handler.NewDashboardHandler()
 	userHandler := handler.NewUserHandler(database.DB)
@@ -97,6 +98,13 @@ func main() {
 		platformAPI.POST("/devices", deviceHandler.Create)
 		platformAPI.PUT("/devices/:id", deviceHandler.Update)
 		platformAPI.DELETE("/devices/:id", deviceHandler.Delete)
+
+		// 设备命令（召测、重启、恢复出厂、OTA准备、设置参数）
+		platformAPI.POST("/devices/:id/polling", deviceCmdHandler.PollDevice)
+		platformAPI.POST("/devices/:id/reboot", deviceCmdHandler.RebootDevice)
+		platformAPI.POST("/devices/:id/factory", deviceCmdHandler.FactoryReset)
+		platformAPI.POST("/devices/:id/report-ack", deviceCmdHandler.ReportAck)
+		platformAPI.POST("/devices/:id/set", deviceCmdHandler.SetDevice)
 
 		// 告警查询与处理
 		platformAPI.GET("/alarms", alarmHandler.List)

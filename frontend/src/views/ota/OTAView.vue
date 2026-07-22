@@ -106,7 +106,7 @@
             </div>
             <el-checkbox-group v-model="taskForm.deviceIds" class="device-checkboxes">
               <el-checkbox v-for="dev in devices" :key="dev.id" :value="dev.id">
-                {{ dev.id }} <span class="device-status-tag" :class="dev.status">{{ dev.status === 'online' ? '在线' : '离线' }}</span>
+                {{ dev.name || dev.id }} <span class="device-status-tag" :class="dev.status">{{ dev.status === 'online' ? '在线' : '离线' }}</span>
               </el-checkbox>
             </el-checkbox-group>
           </div>
@@ -216,7 +216,9 @@ async function openCreateTask() {
   if (devices.value.length === 0) {
     try {
       const res: any = await getDevices()
-      devices.value = res.data?.items || res.data || []
+      const raw = res.data || res
+      // 兼容分页返回 {list:[...]} 和数组返回 [...]
+      devices.value = raw?.list || (Array.isArray(raw) ? raw : [])
     } catch {}
   }
 }

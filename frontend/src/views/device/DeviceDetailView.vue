@@ -328,9 +328,16 @@ async function handlePoll() {
   pollingLoading.value = true
   try {
     const pid = platformStore.currentPlatform?.id || 'pv'
-    await request.post(`/${pid}/devices/${deviceStore.selectedDeviceId}/polling`, { items: ['ac', 'dc', 'sw', 'hw'] })
+    const res: any = await request.post(`/${pid}/devices/${deviceStore.selectedDeviceId}/polling`, { items: ['ac', 'dc', 'sw', 'hw'] })
     ElMessage.success('召测成功，设备数据已刷新')
-    setTimeout(refreshDevice, 1000)
+    // 更新实时数据
+    const data = res.data || res
+    if (data?.realtime) {
+      deviceStore.updateRealtimeData(data.realtime)
+      lastUpdate.value = new Date().toLocaleTimeString()
+    }
+    // 刷新设备信息
+    setTimeout(refreshDevice, 500)
   } catch (e: any) {
     ElMessage.error(e?.message || '召测失败')
   } finally {

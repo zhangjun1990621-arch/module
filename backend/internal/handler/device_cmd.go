@@ -59,9 +59,31 @@ func (h *DeviceCommandHandler) PollDevice(c *gin.Context) {
 		return
 	}
 	committed = true
+
+	// 生成模拟实时数据（光伏逆变器典型参数）
+	second := now.Second()
+	realtimeData := gin.H{
+		"ac": gin.H{
+			"ph": 3,
+			"v":  [3]float64{238.5 + float64(second%5), 239.2 + float64(second%4), 237.8 + float64(second%6)},
+			"c":  [3]float64{15.6 + float64(second%3)*0.2, 15.8 + float64(second%3)*0.1, 15.4 + float64(second%3)*0.3},
+			"p":  11000 + second*10,
+			"q":  220 + second,
+			"pf": 0.98,
+			"f":  50.0 + float64(second%3)*0.01,
+		},
+		"dc": gin.H{
+			"v": [3]float64{650.5 + float64(second%4), 648.2 + float64(second%3), 655.8 + float64(second%5)},
+			"c": [3]float64{5.8 + float64(second%3)*0.1, 6.0 + float64(second%3)*0.15, 5.6 + float64(second%3)*0.2},
+			"p": [3]float64{3772.9, 3889.2, 3672.5},
+		},
+		"cs": 28,
+	}
+
 	success(c, gin.H{
-		"message": "召测成功",
-		"device":  device,
+		"message":   "召测成功",
+		"device":    device,
+		"realtime":  realtimeData,
 	})
 }
 

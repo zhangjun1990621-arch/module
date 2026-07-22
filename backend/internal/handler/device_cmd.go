@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 
 	"iot-platform/internal/model"
 )
@@ -46,9 +47,8 @@ func (h *DeviceCommandHandler) PollDevice(c *gin.Context) {
 	// 模拟召测：更新设备状态为在线，刷新最后在线时间
 	now := time.Now()
 	pdb.Model(&device).Updates(map[string]interface{}{
-		"status":     model.DeviceStatusOnline,
-		"last_seen":  now,
-		"signal_strength": 25 + (now.Second() % 10),
+		"status":    model.DeviceStatusOnline,
+		"last_seen": now,
 	})
 
 	// 重新查询返回最新数据
@@ -119,7 +119,7 @@ func (h *DeviceCommandHandler) FactoryReset(c *gin.Context) {
 	// 模拟恢复出厂
 	pdb.Model(&device).Updates(map[string]interface{}{
 		"status":   model.DeviceStatusOffline,
-		"metadata": fmt.Sprintf(`{"factory_reset": true, "reset_time": "%s"}`, time.Now().Format(time.RFC3339)),
+		"metadata": datatypes.JSON([]byte(fmt.Sprintf(`{"factory_reset": true, "reset_time": "%s"}`, time.Now().Format(time.RFC3339)))),
 	})
 
 	if err := pdb.Commit().Error; err != nil {
@@ -192,7 +192,7 @@ func (h *DeviceCommandHandler) SetDevice(c *gin.Context) {
 	// 模拟参数设置
 	updates := map[string]interface{}{}
 	if v, ok := req["activePower"]; ok {
-		updates["metadata"] = fmt.Sprintf(`{"active_power": %v}`, v)
+		updates["metadata"] = datatypes.JSON([]byte(fmt.Sprintf(`{"active_power": %v}`, v)))
 	}
 	if len(updates) > 0 {
 		pdb.Model(&device).Updates(updates)

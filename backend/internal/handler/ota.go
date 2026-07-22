@@ -688,15 +688,9 @@ func (h *OTAHandler) runUpgradeProgress(platform string, taskID uint) {
 			continue
 		}
 
-		// 90% 成功率
-		var deviceStatus string
-		var errMsg string
-		if rng.Float32() < 0.9 {
-			deviceStatus = model.OTADeviceSuccess
-		} else {
-			deviceStatus = model.OTADeviceFailed
-			errMsg = "升级超时"
-		}
+		// 模拟升级：100% 成功率（演示环境，确保一次升级成功）
+		deviceStatus := model.OTADeviceSuccess
+		errMsg := ""
 
 		pdb2.Model(&model.OTATaskDevice{}).Where("id = ?", device.ID).Updates(map[string]interface{}{
 			"status":     deviceStatus,

@@ -12,6 +12,18 @@ type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
+	MQTT     MQTTConfig     `mapstructure:"mqtt"`
+}
+
+// MQTTConfig MQTT 配置
+type MQTTConfig struct {
+	Broker       string `mapstructure:"broker"`
+	Port         int    `mapstructure:"port"`
+	ClientID     string `mapstructure:"client_id"`
+	Username     string `mapstructure:"username"`
+	Password     string `mapstructure:"password"`
+	KeepAlive    int    `mapstructure:"keep_alive"`
+	CleanSession bool   `mapstructure:"clean_session"`
 }
 
 // ServerConfig HTTP 服务配置

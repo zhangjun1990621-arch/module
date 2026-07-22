@@ -126,6 +126,26 @@ func GetSchemaName(platformID string) (string, error) {
 	return platform.Schema, nil
 }
 
+// GetPlatformDBRaw 获取平台数据库的非事务连接（用于后台 MQTT 处理等不需要事务的场景）
+// 注意：调用方无需 Commit/Rollback
+func GetPlatformDBRaw(platformID string) *gorm.DB {
+	if DB == nil {
+		return nil
+	}
+
+	schemaName, err := GetSchemaName(platformID)
+	if err != nil || !isValidSchemaName(schemaName) {
+		return nil
+	}
+
+	// 使用 Session 设置 search_path（非事务）
+	session := DB.Session(&gorm.Session{})
+	if err := session.Exec(fmt.Sprintf("SET search_path TO %s, public", schemaName)).Error; err != nil {
+		return nil
+	}
+	return session
+}
+
 // CreatePlatformSchema 创建平台专属 schema 并在其中创建 devices / alarms 表
 func CreatePlatformSchema(schemaName string) error {
 	if !isValidSchemaName(schemaName) {

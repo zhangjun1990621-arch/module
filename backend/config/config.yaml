@@ -10,3 +10,11 @@ database:
 jwt:
   secret: iot-platform-jwt-secret-2026
   expire: 24
+mqtt:
+  broker: 47.92.136.54
+  port: 1883
+  client_id: iot-module-backend
+  username: admin
+  password: admin123
+  keep_alive: 60
+  clean_session: false

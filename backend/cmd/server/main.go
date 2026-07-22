@@ -16,6 +16,7 @@ import (
 	"iot-platform/internal/handler"
 	"iot-platform/internal/middleware"
 	"iot-platform/internal/model"
+	mqttClient "iot-platform/internal/mqtt"
 	"iot-platform/internal/service"
 )
 
@@ -42,11 +43,54 @@ func main() {
 	authHandler := handler.NewAuthHandler(database.DB, cfg.JWT.Secret, cfg.JWT.Expire)
 	platformHandler := handler.NewPlatformHandler(platformSvc)
 	deviceHandler := handler.NewDeviceHandler()
-	deviceCmdHandler := handler.NewDeviceCommandHandler()
 	alarmHandler := handler.NewAlarmHandler()
 	dashboardHandler := handler.NewDashboardHandler()
 	userHandler := handler.NewUserHandler(database.DB)
 	otaHandler := handler.NewOTAHandler()
+
+	// 4.5 初始化 MQTT
+	tokenMgr := service.NewTokenManager()
+	processor := service.NewMQTTEventProcessor(database.DB, tokenMgr)
+
+	var publisher *mqttClient.Publisher
+	if cfg.MQTT.Broker != "" {
+		msgHandler := &mqttClient.MessageHandler{
+			OnReport: func(deviceID string, msg *mqttClient.ReportMessage) {
+				processor.OnReport(deviceID, msg)
+			},
+			OnGetResp: func(deviceID string, msg *mqttClient.GetResponse) {
+				processor.OnGetResp(deviceID, msg)
+			},
+			OnSetResp: func(deviceID string, token int, confirm int) {
+				processor.OnSetResp(deviceID, token, confirm)
+			},
+			OnActionResp: func(deviceID string, token int, confirm int) {
+				processor.OnActionResp(deviceID, token, confirm)
+			},
+		}
+
+		mqttCfg := mqttClient.MQTTConfig{
+			Broker:       cfg.MQTT.Broker,
+			Port:         cfg.MQTT.Port,
+			ClientID:     cfg.MQTT.ClientID,
+			Username:     cfg.MQTT.Username,
+			Password:     cfg.MQTT.Password,
+			KeepAlive:    cfg.MQTT.KeepAlive,
+			CleanSession: cfg.MQTT.CleanSession,
+		}
+
+		mqttCli := mqttClient.NewClient(mqttCfg, msgHandler)
+		if err := mqttCli.Start(); err != nil {
+			log.Printf("MQTT connect failed (continuing without MQTT): %v", err)
+		} else {
+			defer mqttCli.Stop()
+			publisher = mqttClient.NewPublisher(mqttCli)
+			processor.SetPublisher(publisher)
+			log.Println("MQTT connected and publisher initialized")
+		}
+	}
+
+	deviceCmdHandler := handler.NewDeviceCommandHandler(publisher, tokenMgr)
 
 	// 5. 注册路由
 	gin.SetMode(gin.ReleaseMode)

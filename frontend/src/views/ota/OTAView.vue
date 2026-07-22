@@ -218,7 +218,13 @@ async function openCreateTask() {
       const res: any = await getDevices()
       const raw = res.data || res
       // 兼容分页返回 {list:[...]} 和数组返回 [...]
-      devices.value = raw?.list || (Array.isArray(raw) ? raw : [])
+      let allDevices = raw?.list || (Array.isArray(raw) ? raw : [])
+      // 过滤掉气象站等非逆变器设备（只保留设备ID含 INV 或名称含逆变器的设备）
+      devices.value = allDevices.filter((d: any) => {
+        const devId = (d.deviceId || d.device_id || '').toUpperCase()
+        const name = (d.name || '').toUpperCase()
+        return devId.includes('INV') || name.includes('逆变器') || devId.includes('8661')
+      })
     } catch {}
   }
 }

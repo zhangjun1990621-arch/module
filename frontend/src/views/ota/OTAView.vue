@@ -106,7 +106,7 @@
             </div>
             <el-checkbox-group v-model="taskForm.deviceIds" class="device-checkboxes">
               <el-checkbox v-for="dev in devices" :key="dev.id" :value="dev.id">
-                {{ dev.name || dev.id }} <span class="device-status-tag" :class="dev.status">{{ dev.status === 'online' ? '在线' : '离线' }}</span>
+                {{ dev.deviceId || dev.id }} - {{ dev.name }} <span class="device-status-tag" :class="dev.status">{{ dev.status === 'online' ? '在线' : '离线' }}</span>
               </el-checkbox>
             </el-checkbox-group>
           </div>

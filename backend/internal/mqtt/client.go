@@ -87,14 +87,17 @@ func (c *Client) Stop() {
 	}
 }
 
-// Publish 发布消息
+// Publish 发布消息（带3秒超时，防止 MQTT 断连时无限阻塞）
 func (c *Client) Publish(topic string, payload interface{}) error {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 	token := c.conn.Publish(topic, 1, false, data)
-	token.Wait()
+	// 使用 WaitTimeout 而非 Wait，避免 MQTT 断连时无限阻塞
+	if !token.WaitTimeout(3 * time.Second) {
+		return fmt.Errorf("MQTT publish timeout (topic: %s)", topic)
+	}
 	return token.Error()
 }
 
